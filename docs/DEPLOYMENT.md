@@ -67,7 +67,16 @@ This is the step everyone forgets and breaks the demo. Now that all three servic
 This must pass before declaring deploy complete.
 
 1. Open the Vercel URL in an incognito window
-2. Sign in with a fresh email, click the magic link
+2. Sign in. If the magic link email arrives, click it. If Supabase rate-limits the email (free tier: 1/hour per address), use the admin bypass instead:
+   ```bash
+   curl -s -X POST "https://zukhknjsaobragzuuegd.supabase.co/auth/v1/admin/generate_link" \
+     -H "Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>" \
+     -H "apikey: <SUPABASE_SERVICE_ROLE_KEY>" \
+     -H "Content-Type: application/json" \
+     -d '{"type":"magiclink","email":"ruben.creviser@gmail.com","redirect_to":"https://web-sigma-eight-17.vercel.app/auth/callback"}' \
+     | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['action_link'])"
+   ```
+   Navigate the browser to the printed URL. It will redirect to `/auth/callback`, set the session, and land on `/upload`.
 3. Upload `docs/test-clip.mp4`
 4. Wait for analysis (should complete in 15–25 seconds)
 5. Verify all 6 dimensions render with scores, observations, and fixes
@@ -88,7 +97,7 @@ If any step fails, fix it before moving on. Don't ship a broken demo.
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| Login email never arrives | Supabase email rate limit on free tier | Wait 60s, or use a different email |
+| Login email never arrives | Supabase email rate limit on free tier (1/hour per address) | Use the admin bypass in Stage 5 step 2 |
 | "Could not retrieve video from URL" from Python | Signed URL expired (>5min) | Regenerate signed URL in the analyze route |
 | Python service returns 401 | `PYTHON_SERVICE_SECRET` mismatch | Verify both Vercel and Railway have identical values |
 | Browser preflight fails with CORS error | `ALLOWED_ORIGINS` missing Vercel URL | Update Railway env var, redeploy |

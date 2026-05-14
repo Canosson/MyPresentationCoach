@@ -43,8 +43,11 @@ Answer rewriting, conversational follow-ups, exports, sharing, dark mode, mobile
       → web/app/recordings/[id]/page.tsx — 6 dimension cards with score dots
 - [x] Recordings list, loading/empty/error states
       → web/app/recordings/page.tsx, web/app/page.tsx (landing/redirect)
-- [ ] Deploy /web to Vercel, /python-service to Railway
-- [ ] End-to-end test on live URLs
+- [x] Deploy /web to Vercel, /python-service to Railway
+      → Vercel: https://web-sigma-eight-17.vercel.app
+      → Railway: https://mypresentationcoach-python-production.up.railway.app
+- [x] End-to-end test on live URLs
+      → PASSED — upload → Gemini (5 visual dims) + Python (vocal presence) → Glass Box report → persists on refresh → recordings list correct
 - [ ] README with architecture diagram + subagent descriptions
 - [ ] Slides + demo rehearsal + backup demo video
 

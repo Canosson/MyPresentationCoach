@@ -40,6 +40,23 @@ node scripts/verify_gemini.mjs
 
 No automated test suite exists yet. `scripts/test_audio_pipeline.py` and `scripts/verify_gemini.mjs` are the smoke-test entry points.
 
+### Auth bypass (for smoke testing when email rate-limited)
+
+Supabase free tier rate-limits magic link emails (1 per hour per address). Use the Admin API to generate a sign-in link directly and navigate the browser to it. The `/auth/callback` page handles both PKCE (`?code=`) and implicit flow (`#access_token=`) tokens.
+
+```bash
+# Step 1 — generate the link (returns an action_link URL, prints it)
+curl -s -X POST "https://zukhknjsaobragzuuegd.supabase.co/auth/v1/admin/generate_link" \
+  -H "Authorization: Bearer $(grep SUPABASE_SERVICE_ROLE_KEY python-service/.env | cut -d= -f2)" \
+  -H "apikey: $(grep SUPABASE_SERVICE_ROLE_KEY python-service/.env | cut -d= -f2)" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"magiclink","email":"ruben.creviser@gmail.com","redirect_to":"https://web-sigma-eight-17.vercel.app/auth/callback"}' \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['action_link'])"
+
+# Step 2 — navigate the Playwright browser to the printed URL
+# It redirects to /auth/callback#access_token=..., the page calls setSession, then redirects to /upload
+```
+
 ## Architecture
 
 Two services deployed independently:
@@ -57,7 +74,7 @@ If one analyzer fails, the report is stored and returned as `partial: true` with
 |---|---|
 | `web/app/api/recordings/route.ts` | `POST /api/recordings` (create row) and `GET /api/recordings` (list) |
 | `web/app/upload/page.tsx` | Upload page -- client-side validation, direct Supabase Storage upload, then calls `/api/recordings` and `/api/analyze` |
-| `web/proxy.ts` | Auth middleware -- gates all routes except `/login` and `/auth/callback` |
+| `web/proxy.ts` | Auth middleware -- gates all routes except `/login` and `/auth/callback` (Next.js 16.x uses `proxy.ts` / `export function proxy`, not `middleware.ts`) |
 | `web/lib/supabase/client.ts` | Browser Supabase client |
 | `web/lib/supabase/server.ts` | Server-side Supabase client (uses service role key) |
 | `web/lib/supabase/middleware.ts` | Session refresh helper used by `proxy.ts` |
