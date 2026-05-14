@@ -11,13 +11,14 @@ web/.next/
 web/out/
 web/build/
 
-# Environment
+# Environment — never commit real secrets
 .env
 .env.local
 .env*.local
 web/.env
 web/.env.local
 python-service/.env
+demo.env
 
 # Browser test artifacts
 .playwright-mcp/

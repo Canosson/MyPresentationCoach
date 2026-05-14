@@ -6,27 +6,52 @@ What it does:
   2. Generates a fresh magic-link login via the Supabase Admin API
   3. Opens the browser directly to the authenticated upload page
 
+Setup:
+  Secrets are read from demo.env (gitignored). Copy demo.env.example to
+  demo.env and fill in SUPABASE_SERVICE_ROLE_KEY.
+
 Usage:
     python3 main.py
 """
 
 import json
+import os
 import subprocess
 import sys
 import webbrowser
+from pathlib import Path
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
 SUPABASE_URL = "https://zukhknjsaobragzuuegd.supabase.co"
-SERVICE_KEY  = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-    ".eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1a2hrbmpzYW9icmFnenV1ZWdkIiwicm9sZSI6"
-    "InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODY3NDgzNywiZXhwIjoyMDk0MjUwODM3fQ"
-    ".VG0HacQtw_xrhwQvB45oK8pMsdy49YpUHdGKlRMs0QI"
-)
-DEMO_EMAIL   = "ruben.creviser@gmail.com"
 APP_URL      = "https://web-sigma-eight-17.vercel.app"
 RAILWAY_URL  = "https://mypresentationcoach-python-production.up.railway.app"
+
+# ── Load secrets from demo.env ────────────────────────────────────────────────
+
+def _load_demo_env() -> dict:
+    env_file = Path(__file__).parent / "demo.env"
+    if not env_file.exists():
+        sys.exit(
+            "demo.env not found. Copy demo.env.example to demo.env and fill in "
+            "SUPABASE_SERVICE_ROLE_KEY."
+        )
+    result = {}
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, _, v = line.partition("=")
+            result[k.strip()] = v.strip()
+    return result
+
+_env = _load_demo_env()
+SERVICE_KEY  = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or _env.get("SUPABASE_SERVICE_ROLE_KEY", "")
+DEMO_EMAIL   = os.environ.get("DEMO_EMAIL") or _env.get("DEMO_EMAIL", "")
+
+if not SERVICE_KEY:
+    sys.exit("SUPABASE_SERVICE_ROLE_KEY not set in demo.env or environment.")
+if not DEMO_EMAIL:
+    sys.exit("DEMO_EMAIL not set in demo.env or environment.")
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -43,8 +68,7 @@ def curl_post(url: str, data: dict, headers: dict) -> dict:
     for k, v in headers.items():
         header_args += ["-H", f"{k}: {v}"]
     r = subprocess.run(
-        ["curl", "-sf", "-X", "POST", url, *header_args,
-         "-d", json.dumps(data)],
+        ["curl", "-sf", "-X", "POST", url, *header_args, "-d", json.dumps(data)],
         capture_output=True, text=True, timeout=15,
     )
     if not r.stdout:
@@ -53,8 +77,7 @@ def curl_post(url: str, data: dict, headers: dict) -> dict:
 
 
 def warm_railway() -> bool:
-    result = curl_get(f"{RAILWAY_URL}/health")
-    return result.get("status") == "ok"
+    return curl_get(f"{RAILWAY_URL}/health").get("status") == "ok"
 
 
 def generate_magic_link() -> str:
