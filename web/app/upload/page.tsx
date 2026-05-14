@@ -139,7 +139,6 @@ export default function UploadPage() {
         {/* File picker */}
         <div>
           <label
-            htmlFor="video-input"
             className={[
               'flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed px-6 py-10 cursor-pointer transition-colors',
               fileState.status === 'invalid'
@@ -184,16 +183,15 @@ export default function UploadPage() {
               </div>
             )}
 
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/mp4"
+              className="sr-only"
+              onChange={handleFileChange}
+              disabled={isBusy}
+            />
           </label>
-          <input
-            id="video-input"
-            ref={fileInputRef}
-            type="file"
-            accept="video/mp4"
-            className="sr-only"
-            onChange={handleFileChange}
-            disabled={isBusy}
-          />
 
           {/* Validation error */}
           {fileState.status === 'invalid' && (
@@ -212,7 +210,7 @@ export default function UploadPage() {
             </div>
             <div className="h-2 w-full rounded-full bg-zinc-200 overflow-hidden">
               <div
-                className="h-full bg-zinc-900 transition-all duration-300"
+                className="h-full bg-zinc-900 [transition:width_300ms_ease-out]"
                 style={{ width: `${uploadState.pct}%` }}
               />
             </div>
@@ -240,9 +238,9 @@ export default function UploadPage() {
           onClick={handleAnalyze}
           disabled={fileState.status !== 'ready' || isBusy}
           className={[
-            'w-full h-12 rounded-xl text-sm font-semibold transition-colors',
+            'w-full h-12 rounded-xl text-sm font-semibold [transition:background-color_150ms_ease-out,transform_100ms_ease-out]',
             fileState.status === 'ready' && !isBusy
-              ? 'bg-zinc-900 text-white hover:bg-zinc-700 cursor-pointer'
+              ? 'bg-zinc-900 text-white hover:bg-zinc-700 active:scale-[0.97] cursor-pointer'
               : 'bg-zinc-200 text-zinc-400 cursor-not-allowed',
           ].join(' ')}
         >

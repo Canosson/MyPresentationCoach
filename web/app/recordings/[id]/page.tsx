@@ -12,23 +12,33 @@ const DIMENSION_LABELS: Record<string, string> = {
   vocal_presence: 'Vocal Presence',
 };
 
-const SCORE_STYLES: Record<number, string> = {
-  5: 'bg-green-100 text-green-800',
-  4: 'bg-green-50 text-green-700',
-  3: 'bg-yellow-50 text-yellow-700',
+// Color encodes urgency at a glance
+const BAR_COLOR: Record<number, string> = {
+  5: 'bg-emerald-500',
+  4: 'bg-emerald-400',
+  3: 'bg-amber-400',
+  2: 'bg-orange-400',
+  1: 'bg-red-400',
+};
+
+const SCORE_BADGE: Record<number, string> = {
+  5: 'bg-emerald-50 text-emerald-700',
+  4: 'bg-emerald-50 text-emerald-700',
+  3: 'bg-amber-50 text-amber-700',
   2: 'bg-orange-50 text-orange-700',
   1: 'bg-red-50 text-red-700',
 };
 
-function ScoreDots({ score }: { score: number }) {
+function ScoreBar({ score }: { score: number }) {
+  const color = BAR_COLOR[score] ?? 'bg-zinc-400';
+  const pct = (score / 5) * 100;
   return (
-    <div className="flex gap-1.5 mt-3 mb-4">
-      {Array.from({ length: 5 }, (_, i) => (
-        <span
-          key={i}
-          className={`h-2.5 w-2.5 rounded-full ${i < score ? 'bg-zinc-800' : 'bg-zinc-200'}`}
-        />
-      ))}
+    <div className="mt-3 mb-4 h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden">
+      {/* @starting-style in globals.css animates this bar from 0 on first paint */}
+      <div
+        className={`score-bar h-full rounded-full ${color}`}
+        style={{ width: `${pct}%` }}
+      />
     </div>
   );
 }
@@ -40,21 +50,27 @@ type Dimension = {
   fix: string;
 };
 
-function DimensionCard({ dim }: { dim: Dimension }) {
-  const scoreStyle = SCORE_STYLES[dim.score] ?? 'bg-zinc-100 text-zinc-700';
+function DimensionCard({ dim, index }: { dim: Dimension; index: number }) {
+  const badge = SCORE_BADGE[dim.score] ?? 'bg-zinc-100 text-zinc-700';
 
   return (
-    <div className="bg-white rounded-2xl border border-zinc-200 p-6 flex flex-col">
+    <div
+      className="bg-white rounded-2xl border border-zinc-200 p-6 flex flex-col"
+      style={{
+        animation: 'fade-up 350ms var(--ease-out) both',
+        animationDelay: `${index * 65}ms`,
+      }}
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-zinc-900 tracking-wide">
           {DIMENSION_LABELS[dim.dimension] ?? dim.dimension}
         </h2>
-        <span className={`text-xs font-mono px-2 py-0.5 rounded ${scoreStyle}`}>
+        <span className={`text-xs font-mono px-2 py-0.5 rounded ${badge}`}>
           {dim.score}/5
         </span>
       </div>
 
-      <ScoreDots score={dim.score} />
+      <ScoreBar score={dim.score} />
 
       <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">
         Observation
@@ -99,7 +115,7 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
         <div className="mb-6">
           <Link
             href="/recordings"
-            className="text-sm text-zinc-500 hover:text-zinc-800 transition-colors"
+            className="text-sm text-zinc-500 [transition:color_150ms_ease-out] hover:text-zinc-800"
           >
             &larr; All recordings
           </Link>
@@ -113,7 +129,7 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
             )}
             <Link
               href="/upload"
-              className="inline-block bg-zinc-900 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-zinc-700 transition-colors"
+              className="inline-block bg-zinc-900 text-white text-sm font-semibold px-5 py-2.5 rounded-xl [transition:background-color_150ms_ease-out,transform_100ms_ease-out] hover:bg-zinc-700 active:scale-[0.97]"
             >
               Try again
             </Link>
@@ -149,15 +165,15 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {report.dimensions.map((dim) => (
-                <DimensionCard key={dim.dimension} dim={dim} />
+              {report.dimensions.map((dim, i) => (
+                <DimensionCard key={dim.dimension} dim={dim} index={i} />
               ))}
             </div>
 
             <div className="mt-8 text-center">
               <Link
                 href="/upload"
-                className="inline-block bg-zinc-900 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-zinc-700 transition-colors"
+                className="inline-block bg-zinc-900 text-white text-sm font-semibold px-5 py-2.5 rounded-xl [transition:background-color_150ms_ease-out,transform_100ms_ease-out] hover:bg-zinc-700 active:scale-[0.97]"
               >
                 Analyze another video
               </Link>

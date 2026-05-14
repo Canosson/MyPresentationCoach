@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 
 const STATUS_STYLES: Record<string, string> = {
-  ready: 'bg-green-50 text-green-700',
-  partial: 'bg-yellow-50 text-yellow-700',
+  ready: 'bg-emerald-50 text-emerald-700',
+  partial: 'bg-amber-50 text-amber-700',
   analyzing: 'bg-blue-50 text-blue-700',
   pending: 'bg-zinc-100 text-zinc-600',
   failed: 'bg-red-50 text-red-700',
@@ -41,7 +41,7 @@ export default async function RecordingsPage() {
           </h1>
           <Link
             href="/upload"
-            className="bg-zinc-900 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-zinc-700 transition-colors"
+            className="bg-zinc-900 text-white text-sm font-semibold px-4 py-2 rounded-xl [transition:background-color_150ms_ease-out,transform_100ms_ease-out] hover:bg-zinc-700 active:scale-[0.97]"
           >
             Analyze new video
           </Link>
@@ -52,17 +52,21 @@ export default async function RecordingsPage() {
             <p className="text-sm text-zinc-500 mb-4">No recordings yet.</p>
             <Link
               href="/upload"
-              className="inline-block bg-zinc-900 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-zinc-700 transition-colors"
+              className="inline-block bg-zinc-900 text-white text-sm font-semibold px-5 py-2.5 rounded-xl [transition:background-color_150ms_ease-out,transform_100ms_ease-out] hover:bg-zinc-700 active:scale-[0.97]"
             >
               Upload your first video
             </Link>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {recordings.map((r) => (
+            {recordings.map((r, i) => (
               <div
                 key={r.id}
-                className="bg-white rounded-2xl border border-zinc-200 px-5 py-4 flex items-center justify-between"
+                className="bg-white rounded-2xl border border-zinc-200 px-5 py-4 flex items-center justify-between [transition:box-shadow_150ms_ease-out,transform_150ms_ease-out] hover:shadow-md hover:-translate-y-px"
+                style={{
+                  animation: 'fade-up 300ms var(--ease-out) both',
+                  animationDelay: `${i * 50}ms`,
+                }}
               >
                 <div>
                   <p className="text-sm text-zinc-800">
@@ -81,7 +85,7 @@ export default async function RecordingsPage() {
                 {(r.status === 'ready' || r.status === 'partial') && r.has_report && (
                   <Link
                     href={`/recordings/${r.id}`}
-                    className="text-sm font-medium text-zinc-900 hover:underline"
+                    className="text-sm font-medium text-zinc-900 [transition:color_150ms_ease-out] hover:text-zinc-600 hover:underline"
                   >
                     View report &rarr;
                   </Link>
