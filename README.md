@@ -2,7 +2,9 @@
 
 > Transparent, candidate-facing feedback on how you come across in video interviews — the part HireVue's AI no longer scores, but human recruiters still see.
 
-**Live demo:** _will be added by the deploy subagent after Stage 5 of `docs/DEPLOYMENT.md`_
+**Live demo:** [web-sigma-eight-17.vercel.app](https://web-sigma-eight-17.vercel.app)
+
+![MyPresentationCoach demo](./MyPresentationCoach.gif)
 
 ---
 
@@ -99,22 +101,28 @@ Each agent's full system prompt lives in `.claude/agents/`.
 
 ```bash
 # Clone
-git clone https://github.com/<your-username>/mypresentationcoach.git
-cd mypresentationcoach
+git clone https://github.com/Canosson/MyPresentationCoach.git
+cd MyPresentationCoach
 
 # Web service
 cd web
-npm install
-cp .env.example .env.local  # fill in values per docs/ENV.md
-npm run dev                  # http://localhost:3000
+pnpm install
+# Create web/.env.local — see docs/ENV.md for required values
+pnpm dev                     # http://localhost:3000
 
-# Python service (in a separate terminal)
+# Python service (separate terminal)
 cd python-service
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env         # fill in values
-uvicorn main:app --reload --port 8000
+# Create python-service/.env — see docs/ENV.md for required values
+uvicorn python_service.main:app --reload --port 8000
+```
+
+To run a live demo without the local stack:
+
+```bash
+python3 main.py   # warms Railway, generates a sign-in link, opens the browser
 ```
 
 Then set up Supabase: paste the SQL from `docs/CONTRACTS.md` into the Supabase SQL editor and run it.
