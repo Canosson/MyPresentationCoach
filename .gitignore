@@ -19,6 +19,9 @@ web/.env
 web/.env.local
 python-service/.env
 
+# Browser test artifacts
+.playwright-mcp/
+
 # IDE
 .vscode/
 .idea/

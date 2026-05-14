@@ -6,7 +6,7 @@ HireVue removed facial / body-language / tone analysis from their AI scoring aft
 ## MVP scope (2 days, solo)
 - Auth: Supabase magic link
 - Upload: max 10s video, client-direct to Supabase Storage
-- Analyze: Gemini 2.0 Flash for 5 visual dimensions, Python+librosa for vocal presence
+- Analyze: Gemini 2.5 Flash for 5 visual dimensions, Python+librosa for vocal presence
 - Report: Glass Box — 6 cards, score 1–5, observation, fix
 - Recordings list page
 - Deployed live on Vercel + Railway
@@ -17,19 +17,32 @@ Answer rewriting, conversational follow-ups, exports, sharing, dark mode, mobile
 ## Stack
 - Monorepo: /web (Next.js 14 App Router, TS, Tailwind, shadcn) + /python-service (FastAPI, librosa, ffmpeg)
 - Supabase: Postgres + Auth + Storage
-- Gemini 2.0 Flash (free tier) for vision
+- Gemini 2.5 Flash for vision
 - Vercel for /web, Railway for /python-service
 
 ## TODO
-- [ ] Repo init, .claude/agents/ in place, Next.js scaffold, Python scaffold
-- [ ] Verify Gemini API key works with a video (script test)
-- [ ] Verify ffmpeg + librosa work locally with a sample video
-- [ ] Supabase project, schema, RLS, magic link auth
-- [ ] Upload flow (client-direct to Storage)
-- [ ] Python /analyze-audio endpoint working locally
-- [ ] /api/analyze orchestration — parallel Gemini + Python, merge, write report
-- [ ] Glass Box report UI (the demo surface)
-- [ ] Recordings list, loading/empty/error states
+- [x] Repo init, .claude/agents/ in place, Next.js scaffold, Python scaffold
+- [x] Verify Gemini API key works with a video (script test)
+      → PASSED with gemini-2.5-flash — file upload, ACTIVE state, structured 5-dimension response all verified
+- [x] Verify ffmpeg + librosa work locally with a sample video
+      → PASSED — generated docs/test-clip.mp4, extracted audio, all 5 metrics numeric, vocal_presence scoring works
+- [x] Supabase project, schema, RLS, magic link auth
+      → SQL migration: docs/migrations/001_initial_schema.sql
+      → Auth: proxy.ts gate, login page, /auth/callback route handler
+      → Supabase clients: lib/supabase/{server,client,middleware}.ts
+      → Zod schemas: lib/schemas/report.ts
+- [x] Upload flow (client-direct to Storage)
+      → POST /api/recordings creates row, returns { id, storage_path }
+      → lib/upload.ts: uploadRecording() uploads file direct to Supabase Storage
+      → app/upload/page.tsx: file picker, 10s validation, progress, redirect to /recordings/{id}
+- [x] Python /analyze-audio endpoint working locally
+      → storage_path-based download via Supabase service role key
+- [x] /api/analyze orchestration — parallel Gemini + Python, merge, write report
+      → web/app/api/analyze/route.ts + web/lib/ai/gemini.ts
+- [x] Glass Box report UI (the demo surface)
+      → web/app/recordings/[id]/page.tsx — 6 dimension cards with score dots
+- [x] Recordings list, loading/empty/error states
+      → web/app/recordings/page.tsx, web/app/page.tsx (landing/redirect)
 - [ ] Deploy /web to Vercel, /python-service to Railway
 - [ ] End-to-end test on live URLs
 - [ ] README with architecture diagram + subagent descriptions
