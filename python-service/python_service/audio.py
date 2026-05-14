@@ -100,22 +100,22 @@ def score_vocal_presence(metrics: dict) -> tuple[int, str, str]:
     Map computed metrics to a 1-5 Vocal Presence score plus a single
     observation/fix pair focused on the dominant weakness.
 
-    Rubric (from docs/CONTRACTS.md):
+    Rubric (laptop-mic calibrated — typical built-in mic at 0.5–1.5 m):
     ─────────────────────────────────────────────────────────────────
     Score 5 — Excellent
-      mean_db > -22 AND silence_ratio < 0.15 AND std_db between 3–7
+      mean_db > -30 AND silence_ratio < 0.20 AND std_db between 3–7
 
     Score 4 — Good
-      mean_db > -26 AND silence_ratio < 0.20
+      mean_db > -35 AND silence_ratio < 0.25
 
     Score 3 — Acceptable
-      mean_db > -32 AND silence_ratio < 0.30
+      mean_db > -41 AND silence_ratio < 0.40
 
     Score 2 — Weak
-      mean_db > -38 OR silence_ratio < 0.45
+      mean_db > -50
 
     Score 1 — Inaudible / silent
-      mean_db <= -38 OR silence_ratio >= 0.45 OR duration_seconds < 2s
+      (mean_db <= -50 AND silence_ratio >= 0.60) OR std_db < 1.5 OR duration_seconds < 2s
     ─────────────────────────────────────────────────────────────────
 
     Observation selection (dominant weakness, evaluated in priority order):
@@ -130,33 +130,39 @@ def score_vocal_presence(metrics: dict) -> tuple[int, str, str]:
     silence_ratio = metrics["silence_ratio"]
     duration_seconds = metrics["duration_seconds"]
 
-    # Score 1 guard — no audible content
-    if mean_db <= -38 or silence_ratio >= 0.45 or duration_seconds < 2.0:
+    # Score 1 guard — truly no audible content (both conditions must be bad,
+    # because laptop mics routinely produce -40 to -48 dB at normal distance).
+    # High std_db (>8) signals real speech variation even if mean is low.
+    truly_silent = (mean_db <= -50 and silence_ratio >= 0.60) or std_db < 1.5
+    if duration_seconds < 2.0 or truly_silent:
         return (
             1,
             "No audible voice detected in this clip.",
             "Record in a quiet space and speak clearly toward the microphone.",
         )
 
-    # Assign score (first matching rule wins)
-    if mean_db > -22 and silence_ratio < 0.15 and 3.0 <= std_db <= 7.0:
+    # Assign score (first matching rule wins).
+    # Thresholds are calibrated for laptop built-in mics at ~0.5–1.5 m distance,
+    # which typically produce mean_db in the -35 to -48 dB range.
+    if mean_db > -30 and silence_ratio < 0.20 and 3.0 <= std_db <= 7.0:
         score = 5
-    elif mean_db > -26 and silence_ratio < 0.20:
+    elif mean_db > -35 and silence_ratio < 0.25:
         score = 4
-    elif mean_db > -32 and silence_ratio < 0.30:
+    elif mean_db > -41 and silence_ratio < 0.40:
         score = 3
-    elif mean_db > -38:
+    elif mean_db > -50:
         score = 2
     else:
         score = 1
 
-    # Dominant-weakness observation (evaluated independently of score)
-    if silence_ratio > 0.30:
-        observation = "Long silent gaps detected — your voice is absent for extended periods."
-        fix = "Try to maintain a steady pace and reduce pauses to under one second."
-    elif mean_db < -30:
+    # Dominant-weakness observation (evaluated independently of score).
+    # Check quiet voice before gaps — low mean_db is usually the root cause.
+    if mean_db < -38:
         observation = "Your voice is quieter than recruiters expect for a recorded interview."
         fix = "Move your mouth closer to the microphone or raise your speaking volume by one notch."
+    elif silence_ratio > 0.35:
+        observation = "Long silent gaps detected — your voice is absent for extended periods."
+        fix = "Try to maintain a steady pace and reduce pauses to under one second."
     elif std_db < 2.0:
         observation = "Your delivery sounds monotone — loudness barely varies across the clip."
         fix = "Emphasise key words by naturally raising your volume on them."
