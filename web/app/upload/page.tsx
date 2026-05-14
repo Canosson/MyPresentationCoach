@@ -184,16 +184,16 @@ export default function UploadPage() {
               </div>
             )}
 
-            <input
-              id="video-input"
-              ref={fileInputRef}
-              type="file"
-              accept="video/mp4"
-              className="sr-only"
-              onChange={handleFileChange}
-              disabled={isBusy}
-            />
           </label>
+          <input
+            id="video-input"
+            ref={fileInputRef}
+            type="file"
+            accept="video/mp4"
+            className="sr-only"
+            onChange={handleFileChange}
+            disabled={isBusy}
+          />
 
           {/* Validation error */}
           {fileState.status === 'invalid' && (
