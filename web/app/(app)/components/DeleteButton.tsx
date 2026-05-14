@@ -1,14 +1,17 @@
 'use client';
 
 import { useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { deleteRecording } from '@/lib/actions';
 
 export default function DeleteButton({ id }: { id: string }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   function handleClick() {
     startTransition(async () => {
       await deleteRecording(id);
+      router.refresh();
     });
   }
 

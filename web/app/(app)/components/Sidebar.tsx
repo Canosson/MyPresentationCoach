@@ -2,7 +2,7 @@
 
 import { useTransition, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { deleteRecording } from '@/lib/actions';
 
 type Recording = {
@@ -78,6 +78,7 @@ const NAV = [
 
 export default function Sidebar({ recordings }: { recordings: Recording[] }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pendingId, setPendingId] = useState<string | null>(null);
 
@@ -86,6 +87,7 @@ export default function Sidebar({ recordings }: { recordings: Recording[] }) {
     startTransition(async () => {
       await deleteRecording(id);
       setPendingId(null);
+      router.refresh();
     });
   }
 
